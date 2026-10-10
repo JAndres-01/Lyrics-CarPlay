@@ -1,0 +1,36 @@
+name: Build LyricsCarPlay iOS App
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Build iOS App (Simulator / Unsigned IPA)
+        run: |
+          xcodebuild -project LyricsCarPlay.xcodeproj \
+                     -scheme LyricsCarPlay \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     clean build
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: LyricsCarPlay-Build
+          path: build/Release-iphoneos/

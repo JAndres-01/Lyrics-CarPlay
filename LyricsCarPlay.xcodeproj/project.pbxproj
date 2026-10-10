@@ -1,0 +1,361 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00000012C10000000000001 /* LyricsCarPlayApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000012C10000000000001 /* LyricsCarPlayApp.swift */; };
+		A00000022C10000000000001 /* LyricLine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000022C10000000000001 /* LyricLine.swift */; };
+		A00000032C10000000000001 /* TrackInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000032C10000000000001 /* TrackInfo.swift */; };
+		A00000042C10000000000001 /* LyricsAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000042C10000000000001 /* LyricsAttributes.swift */; };
+		A00000052C10000000000001 /* LRCParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000052C10000000000001 /* LRCParser.swift */; };
+		A00000062C10000000000001 /* LRCLIBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000062C10000000000001 /* LRCLIBService.swift */; };
+		A00000072C10000000000001 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000072C10000000000001 /* SyncEngine.swift */; };
+		A00000082C10000000000001 /* AppleMusicMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000082C10000000000001 /* AppleMusicMonitor.swift */; };
+		A00000092C10000000000001 /* SpotifyMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000092C10000000000001 /* SpotifyMonitor.swift */; };
+		A000000A2C10000000000001 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000A2C10000000000001 /* LiveActivityManager.swift */; };
+		A000000B2C10000000000001 /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000B2C10000000000001 /* MainViewModel.swift */; };
+		A000000C2C10000000000001 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000C2C10000000000001 /* MainView.swift */; };
+		A000000D2C10000000000001 /* MockPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000D2C10000000000001 /* MockPlayerView.swift */; };
+		A000000E2C10000000000001 /* LyricsDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000E2C10000000000001 /* LyricsDisplayView.swift */; };
+
+		A00000102C10000000000001 /* LyricsWidgetExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000102C10000000000001 /* LyricsWidgetExtension.swift */; };
+		A00000112C10000000000001 /* CarPlayLiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000112C10000000000001 /* CarPlayLiveActivityView.swift */; };
+		A00000122C10000000000001 /* DynamicIslandViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000122C10000000000001 /* DynamicIslandViews.swift */; };
+		A00000132C10000000000001 /* LyricsAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000042C10000000000001 /* LyricsAttributes.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B00000012C10000000000001 /* LyricsCarPlayApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LyricsCarPlayApp.swift; sourceTree = "<group>"; };
+		B00000022C10000000000001 /* LyricLine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Models/LyricLine.swift; sourceTree = "<group>"; };
+		B00000032C10000000000001 /* TrackInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Models/TrackInfo.swift; sourceTree = "<group>"; };
+		B00000042C10000000000001 /* LyricsAttributes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Models/LyricsAttributes.swift; sourceTree = "<group>"; };
+		B00000052C10000000000001 /* LRCParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/LRCParser.swift; sourceTree = "<group>"; };
+		B00000062C10000000000001 /* LRCLIBService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/LRCLIBService.swift; sourceTree = "<group>"; };
+		B00000072C10000000000001 /* SyncEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/SyncEngine.swift; sourceTree = "<group>"; };
+		B00000082C10000000000001 /* AppleMusicMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/AppleMusicMonitor.swift; sourceTree = "<group>"; };
+		B00000092C10000000000001 /* SpotifyMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/SpotifyMonitor.swift; sourceTree = "<group>"; };
+		B000000A2C10000000000001 /* LiveActivityManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/LiveActivityManager.swift; sourceTree = "<group>"; };
+		B000000B2C10000000000001 /* MainViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewModels/MainViewModel.swift; sourceTree = "<group>"; };
+		B000000C2C10000000000001 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/MainView.swift; sourceTree = "<group>"; };
+		B000000D2C10000000000001 /* MockPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/MockPlayerView.swift; sourceTree = "<group>"; };
+		B000000E2C10000000000001 /* LyricsDisplayView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/LyricsDisplayView.swift; sourceTree = "<group>"; };
+		B000000F2C10000000000001 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+
+		B00000102C10000000000001 /* LyricsWidgetExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LyricsWidgetExtension.swift; sourceTree = "<group>"; };
+		B00000112C10000000000001 /* CarPlayLiveActivityView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/CarPlayLiveActivityView.swift; sourceTree = "<group>"; };
+		B00000122C10000000000001 /* DynamicIslandViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/DynamicIslandViews.swift; sourceTree = "<group>"; };
+		B00000132C10000000000001 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+
+		C00000012C10000000000001 /* LyricsCarPlay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LyricsCarPlay.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C00000022C10000000000001 /* LyricsWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LyricsWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		MAIN_GROUP = {
+			isa = PBXGroup;
+			children = (
+				GROUP_APP,
+				GROUP_EXTENSION,
+				GROUP_PRODUCTS,
+			);
+			sourceTree = "<group>";
+		};
+		GROUP_APP = {
+			isa = PBXGroup;
+			children = (
+				B00000012C10000000000001 /* LyricsCarPlayApp.swift */,
+				B00000022C10000000000001 /* LyricLine.swift */,
+				B00000032C10000000000001 /* TrackInfo.swift */,
+				B00000042C10000000000001 /* LyricsAttributes.swift */,
+				B00000052C10000000000001 /* LRCParser.swift */,
+				B00000062C10000000000001 /* LRCLIBService.swift */,
+				B00000072C10000000000001 /* SyncEngine.swift */,
+				B00000082C10000000000001 /* AppleMusicMonitor.swift */,
+				B00000092C10000000000001 /* SpotifyMonitor.swift */,
+				B000000A2C10000000000001 /* LiveActivityManager.swift */,
+				B000000B2C10000000000001 /* MainViewModel.swift */,
+				B000000C2C10000000000001 /* MainView.swift */,
+				B000000D2C10000000000001 /* MockPlayerView.swift */,
+				B000000E2C10000000000001 /* LyricsDisplayView.swift */,
+				B000000F2C10000000000001 /* Info.plist */,
+			);
+			path = LyricsCarPlay;
+			sourceTree = "<group>";
+		};
+		GROUP_EXTENSION = {
+			isa = PBXGroup;
+			children = (
+				B00000102C10000000000001 /* LyricsWidgetExtension.swift */,
+				B00000112C10000000000001 /* CarPlayLiveActivityView.swift */,
+				B00000122C10000000000001 /* DynamicIslandViews.swift */,
+				B00000132C10000000000001 /* Info.plist */,
+			);
+			path = LyricsWidgetExtension;
+			sourceTree = "<group>";
+		};
+		GROUP_PRODUCTS = {
+			isa = PBXGroup;
+			children = (
+				C00000012C10000000000001 /* LyricsCarPlay.app */,
+				C00000022C10000000000001 /* LyricsWidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		TARGET_APP = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CONFIG_APP;
+			buildPhases = (
+				SOURCES_APP,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LyricsCarPlay;
+			productName = LyricsCarPlay;
+			productReference = C00000012C10000000000001 /* LyricsCarPlay.app */;
+			productType = "com.apple.product-type.application";
+		};
+		TARGET_EXTENSION = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CONFIG_EXTENSION;
+			buildPhases = (
+				SOURCES_EXTENSION,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LyricsWidgetExtension;
+			productName = LyricsWidgetExtension;
+			productReference = C00000022C10000000000001 /* LyricsWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PROJECT = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					TARGET_APP = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					TARGET_EXTENSION = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = CONFIG_PROJECT;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = es;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				es,
+				Base,
+			);
+			mainGroup = MAIN_GROUP;
+			productRefGroup = GROUP_PRODUCTS;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				TARGET_APP,
+				TARGET_EXTENSION,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		SOURCES_APP = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000012C10000000000001 /* LyricsCarPlayApp.swift in Sources */,
+				A00000022C10000000000001 /* LyricLine.swift in Sources */,
+				A00000032C10000000000001 /* TrackInfo.swift in Sources */,
+				A00000042C10000000000001 /* LyricsAttributes.swift in Sources */,
+				A00000052C10000000000001 /* LRCParser.swift in Sources */,
+				A00000062C10000000000001 /* LRCLIBService.swift in Sources */,
+				A00000072C10000000000001 /* SyncEngine.swift in Sources */,
+				A00000082C10000000000001 /* AppleMusicMonitor.swift in Sources */,
+				A00000092C10000000000001 /* SpotifyMonitor.swift in Sources */,
+				A000000A2C10000000000001 /* LiveActivityManager.swift in Sources */,
+				A000000B2C10000000000001 /* MainViewModel.swift in Sources */,
+				A000000C2C10000000000001 /* MainView.swift in Sources */,
+				A000000D2C10000000000001 /* MockPlayerView.swift in Sources */,
+				A000000E2C10000000000001 /* LyricsDisplayView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		SOURCES_EXTENSION = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000102C10000000000001 /* LyricsWidgetExtension.swift in Sources */,
+				A00000112C10000000000001 /* CarPlayLiveActivityView.swift in Sources */,
+				A00000122C10000000000001 /* DynamicIslandViews.swift in Sources */,
+				A00000132C10000000000001 /* LyricsAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CONF_PROJECT_DEBUG = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_PROTOTHERREADS = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CONF_PROJECT_RELEASE = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_PROTOTHERREADS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		CONF_APP_DEBUG = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = LyricsCarPlay/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.antigravity.LyricsCarPlay;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CONF_APP_RELEASE = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = LyricsCarPlay/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.antigravity.LyricsCarPlay;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CONF_EXTENSION_DEBUG = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = LyricsWidgetExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.antigravity.LyricsCarPlay.LyricsWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CONF_EXTENSION_RELEASE = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = LyricsWidgetExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.antigravity.LyricsCarPlay.LyricsWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CONFIG_PROJECT = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CONF_PROJECT_DEBUG,
+				CONF_PROJECT_RELEASE,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CONFIG_APP = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CONF_APP_DEBUG,
+				CONF_APP_RELEASE,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CONFIG_EXTENSION = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CONF_EXTENSION_DEBUG,
+				CONF_EXTENSION_RELEASE,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PROJECT;
+}

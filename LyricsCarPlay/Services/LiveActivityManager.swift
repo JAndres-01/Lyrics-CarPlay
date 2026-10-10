@@ -3,6 +3,7 @@ import Foundation
 
 /// Controller managing the lifecycle of Live Activities (ActivityKit) for CarPlay & Dynamic Island.
 @MainActor
+@available(iOS 16.2, *)
 public final class LiveActivityManager: ObservableObject {
     @Published public private(set) var isActivityActive: Bool = false
     private var currentActivity: Activity<LyricsAttributes>?

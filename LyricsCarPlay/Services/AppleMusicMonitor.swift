@@ -29,7 +29,9 @@ public final class AppleMusicMonitor: ObservableObject {
             object: player,
             queue: .main
         ) { [weak self] _ in
-            self?.handleTrackChange(onTrackChanged: onTrackChanged)
+            Task { @MainActor [weak self] in
+                self?.handleTrackChange(onTrackChanged: onTrackChanged)
+            }
         }
 
         NotificationCenter.default.addObserver(
@@ -37,7 +39,9 @@ public final class AppleMusicMonitor: ObservableObject {
             object: player,
             queue: .main
         ) { [weak self] _ in
-            self?.handleStateChange()
+            Task { @MainActor [weak self] in
+                self?.handleStateChange()
+            }
         }
 
         // Periodic timer to poll current playback time

@@ -21,7 +21,16 @@ public final class MainViewModel: ObservableObject {
     @Published public var spotifyToken: String = ""
 
     public let syncEngine = SyncEngine()
-    public let liveActivityManager = LiveActivityManager()
+
+    private var _liveActivityManager: Any?
+    @available(iOS 16.2, *)
+    public var liveActivityManager: LiveActivityManager {
+        if _liveActivityManager == nil {
+            _liveActivityManager = LiveActivityManager()
+        }
+        return _liveActivityManager as! LiveActivityManager
+    }
+
     public let appleMusicMonitor = AppleMusicMonitor()
     public let spotifyMonitor = SpotifyMonitor()
     private let lrclibService = LRCLIBService()
@@ -37,12 +46,14 @@ public final class MainViewModel: ObservableObject {
             .sink { [weak self] state in
                 guard let self = self, let state = state else { return }
                 self.syncState = state
-                if self.liveActivityManager.isActivityActive {
-                    self.liveActivityManager.updateActivity(
-                        track: self.currentTrack,
-                        syncState: state,
-                        isPlaying: self.syncEngine.isPlaying
-                    )
+                if #available(iOS 16.2, *) {
+                    if self.liveActivityManager.isActivityActive {
+                        self.liveActivityManager.updateActivity(
+                            track: self.currentTrack,
+                            syncState: state,
+                            isPlaying: self.syncEngine.isPlaying
+                        )
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -69,8 +80,10 @@ public final class MainViewModel: ObservableObject {
             syncEngine.setLyrics(fetchedLyrics, track: track)
 
             // Start Live Activity
-            if let initialState = syncEngine.currentSyncState {
-                liveActivityManager.startActivity(track: track, initialSyncState: initialState)
+            if #available(iOS 16.2, *) {
+                if let initialState = syncEngine.currentSyncState {
+                    liveActivityManager.startActivity(track: track, initialSyncState: initialState)
+                }
             }
 
             // If in mock mode, start playback timer automatically
@@ -113,8 +126,10 @@ public final class MainViewModel: ObservableObject {
         self.errorMessage = nil
         syncEngine.setLyrics(parsed, track: track)
         
-        if let initialState = syncEngine.currentSyncState {
-            liveActivityManager.startActivity(track: track, initialSyncState: initialState)
+        if #available(iOS 16.2, *) {
+            if let initialState = syncEngine.currentSyncState {
+                liveActivityManager.startActivity(track: track, initialSyncState: initialState)
+            }
         }
         syncEngine.startMockTimer()
     }
@@ -133,6 +148,8 @@ public final class MainViewModel: ObservableObject {
         syncEngine.stopMockTimer()
         appleMusicMonitor.stopMonitoring()
         spotifyMonitor.stopPolling()
-        liveActivityManager.endActivity()
+        if #available(iOS 16.2, *) {
+            liveActivityManager.endActivity()
+        }
     }
 }

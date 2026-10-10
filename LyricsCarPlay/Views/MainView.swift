@@ -33,15 +33,17 @@ public struct MainView: View {
                         .foregroundColor(.secondary)
 
                     // Live Activity Indicator Badge
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(viewModel.liveActivityManager.isActivityActive ? Color.green : Color.gray)
-                            .frame(width: 8, height: 8)
-                        Text(viewModel.liveActivityManager.isActivityActive ? "Live Activity Activa en CarPlay" : "Live Activity Inactiva")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    if #available(iOS 16.2, *) {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(viewModel.liveActivityManager.isActivityActive ? Color.green : Color.gray)
+                                .frame(width: 8, height: 8)
+                            Text(viewModel.liveActivityManager.isActivityActive ? "Live Activity Activa en CarPlay" : "Live Activity Inactiva")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.top, 4)
                     }
-                    .padding(.top, 4)
                 }
                 .padding()
                 .frame(maxWidth: .infinity)

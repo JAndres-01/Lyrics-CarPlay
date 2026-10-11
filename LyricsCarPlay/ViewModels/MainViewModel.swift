@@ -71,6 +71,21 @@ public final class MainViewModel: ObservableObject {
     }
 
     private func updateStandbyWidget(track: TrackInfo, state: SyncState) {
+        let appBundleID = Bundle.main.bundleIdentifier ?? "com.antigravity.LyricsCarPlay"
+        let suiteCandidates = [
+            "group.\(appBundleID)",
+            "group.com.antigravity.LyricsCarPlay.RN6X4K84VZ",
+            "group.com.antigravity.LyricsCarPlay"
+        ]
+        for suite in suiteCandidates {
+            if let defaults = UserDefaults(suiteName: suite) {
+                defaults.set(track.title, forKey: "WidgetTrackTitle")
+                defaults.set(track.artist, forKey: "WidgetArtistName")
+                defaults.set(state.currentLine, forKey: "WidgetCurrentLine")
+                defaults.set(state.nextLine, forKey: "WidgetNextLine")
+            }
+        }
+
         let now = Date()
         var entries: [WidgetScheduledLine] = [
             WidgetScheduledLine(date: now, currentLine: state.currentLine, nextLine: state.nextLine)
@@ -132,6 +147,9 @@ public final class MainViewModel: ObservableObject {
                                 track: self.currentTrack,
                                 initialSyncState: state
                             )
+                            if let err = self.liveActivityManager.lastErrorMessage {
+                                self.errorMessage = err
+                            }
                         }
                     }
                 }

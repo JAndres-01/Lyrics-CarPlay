@@ -6,6 +6,7 @@ import Foundation
 @available(iOS 16.2, *)
 public final class LiveActivityManager: ObservableObject {
     @Published public private(set) var isActivityActive: Bool = false
+    @Published public private(set) var lastErrorMessage: String? = nil
     private var currentActivity: Activity<LyricsAttributes>?
 
     public init() {}
@@ -13,6 +14,7 @@ public final class LiveActivityManager: ObservableObject {
     /// Starts a Live Activity for a given track and initial sync state.
     public func startActivity(track: TrackInfo, initialSyncState: SyncState) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            self.lastErrorMessage = "Activa 'Actividades en vivo' en Ajustes > LyricsCarPlay."
             print("Live Activities no están habilitadas en Ajustes de iOS.")
             return
         }
@@ -39,8 +41,11 @@ public final class LiveActivityManager: ObservableObject {
             )
             self.currentActivity = activity
             self.isActivityActive = true
+            self.lastErrorMessage = nil
             print("Live Activity iniciada con éxito (ID: \(activity.id))")
         } catch {
+            self.isActivityActive = false
+            self.lastErrorMessage = "Extensión de Widget no instalada (\(error.localizedDescription)). Asegúrate de NO eliminar 'App Extensions / PlugIns' al instalar el IPA."
             print("Error al iniciar Live Activity: \(error.localizedDescription)")
         }
     }

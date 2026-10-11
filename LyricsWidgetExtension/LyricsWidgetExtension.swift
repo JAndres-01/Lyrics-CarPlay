@@ -65,20 +65,15 @@ struct LyricsTimelineProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (LyricsTimelineEntry) -> Void) {
-        fetchFromLocalServer { payload in
-            if let payload = payload, let first = payload.entries.first {
-                completion(
-                    LyricsTimelineEntry(
-                        date: Date(),
-                        trackTitle: payload.trackTitle,
-                        artistName: payload.artistName,
-                        currentLine: first.currentLine,
-                        nextLine: first.nextLine
-                    )
-                )
-            } else {
-                completion(placeholder(in: context))
-            }
+        // Must return immediately for iOS / CarPlay Widget Gallery preview
+        if context.isPreview {
+            completion(placeholder(in: context))
+            return
+        }
+        if let groupEntry = loadFromAppGroup() {
+            completion(groupEntry)
+        } else {
+            completion(placeholder(in: context))
         }
     }
 
@@ -96,6 +91,9 @@ struct LyricsTimelineProvider: TimelineProvider {
                 }
                 let refreshDate = Date().addingTimeInterval(15)
                 completion(Timeline(entries: timelineEntries, policy: .after(refreshDate)))
+            } else if let groupEntry = loadFromAppGroup() {
+                let refreshDate = Date().addingTimeInterval(5)
+                completion(Timeline(entries: [groupEntry], policy: .after(refreshDate)))
             } else {
                 let fallback = LyricsTimelineEntry(
                     date: Date(),
@@ -110,13 +108,37 @@ struct LyricsTimelineProvider: TimelineProvider {
         }
     }
 
+    private func loadFromAppGroup() -> LyricsTimelineEntry? {
+        let extBundleID = Bundle.main.bundleIdentifier ?? "com.antigravity.LyricsCarPlay.LyricsWidgetExtension"
+        let baseBundleID = extBundleID.replacingOccurrences(of: ".LyricsWidgetExtension", with: "")
+        let suiteCandidates = [
+            "group.\(baseBundleID)",
+            "group.com.antigravity.LyricsCarPlay.RN6X4K84VZ",
+            "group.com.antigravity.LyricsCarPlay"
+        ]
+        for suite in suiteCandidates {
+            if let defaults = UserDefaults(suiteName: suite),
+               let title = defaults.string(forKey: "WidgetTrackTitle"),
+               let currentLine = defaults.string(forKey: "WidgetCurrentLine") {
+                return LyricsTimelineEntry(
+                    date: Date(),
+                    trackTitle: title,
+                    artistName: defaults.string(forKey: "WidgetArtistName") ?? "",
+                    currentLine: currentLine,
+                    nextLine: defaults.string(forKey: "WidgetNextLine") ?? ""
+                )
+            }
+        }
+        return nil
+    }
+
     private func fetchFromLocalServer(completion: @escaping (WidgetSyncPayloadDTO?) -> Void) {
         guard let url = URL(string: "http://127.0.0.1:49281/state") else {
             completion(nil)
             return
         }
         var request = URLRequest(url: url)
-        request.timeoutInterval = 0.6
+        request.timeoutInterval = 0.5
         request.cachePolicy = .reloadIgnoringLocalCacheData
 
         URLSession.shared.dataTask(with: request) { data, _, error in

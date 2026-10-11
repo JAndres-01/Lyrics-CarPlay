@@ -12,30 +12,17 @@ public struct CarPlayLiveActivityView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Clean Track Title & Artist header (No music note icon)
-            HStack(spacing: 4) {
-                Text(context.state.trackTitle)
-                    .font(.caption.bold())
-                    .foregroundColor(.primary.opacity(0.85))
-                    .lineLimit(1)
-
-                Text("• \(context.state.artistName)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-
-                Spacer()
-            }
-
+        VStack(alignment: .leading, spacing: 6) {
             // Large active lyric line that grows in size while sliding up from the bottom
             ZStack(alignment: .leading) {
                 Text(context.state.currentLine)
                     .id("active-" + context.state.currentLine)
-                    .font(.system(size: 23, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.80)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.72)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .transition(
                         .asymmetric(
                             insertion: .scale(scale: 0.72, anchor: .bottomLeading)
@@ -56,7 +43,9 @@ public struct CarPlayLiveActivityView: View {
                         .id("upcoming-" + context.state.nextLine)
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundColor(.secondary)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.80)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .transition(
                             .asymmetric(
                                 insertion: .move(edge: .bottom).combined(with: .opacity),
@@ -69,8 +58,8 @@ public struct CarPlayLiveActivityView: View {
                 .animation(.spring(response: 0.42, dampingFraction: 0.78), value: context.state.nextLine)
             }
         }
-        .padding(.vertical, 14)
-        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 14)
         .background(Color(UIColor.systemBackground).opacity(0.96))
     }
 }

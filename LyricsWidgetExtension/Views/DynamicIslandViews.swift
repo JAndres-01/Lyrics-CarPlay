@@ -7,26 +7,15 @@ public struct DynamicIslandViews {
 
     @DynamicIslandExpandedContentBuilder
     public static func expandedView(context: ActivityViewContext<LyricsAttributes>) -> DynamicIslandExpandedContent<some View> {
-        DynamicIslandExpandedRegion(.leading) {
-            Text(context.state.trackTitle)
-                .font(.caption.bold())
-                .lineLimit(1)
-        }
-
-        DynamicIslandExpandedRegion(.trailing) {
-            Text(context.state.artistName)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .lineLimit(1)
-        }
-
         DynamicIslandExpandedRegion(.bottom) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(context.state.currentLine)
                     .id("di-active-" + context.state.currentLine)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
-                    .lineLimit(2)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.75)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .transition(
                         .asymmetric(
                             insertion: .scale(scale: 0.75, anchor: .bottomLeading)
@@ -40,11 +29,12 @@ public struct DynamicIslandViews {
                     Text(context.state.nextLine)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .animation(.spring(response: 0.42, dampingFraction: 0.78), value: context.state.currentLine)
-            .padding(.top, 4)
+            .padding(.top, 2)
         }
     }
 }

@@ -13,15 +13,13 @@ struct LyricsLiveActivityWidget: Widget {
             DynamicIsland {
                 DynamicIslandViews.expandedView(context: context)
             } compactLeading: {
-                Text(context.state.trackTitle)
-                    .font(.caption2.bold())
-                    .lineLimit(1)
-                    .frame(maxWidth: 64)
+                Image(systemName: "text.quote")
+                    .foregroundColor(.accentColor)
             } compactTrailing: {
                 Text(context.state.currentLine)
                     .font(.caption2.bold())
                     .lineLimit(1)
-                    .frame(maxWidth: 110)
+                    .frame(maxWidth: 140)
             } minimal: {
                 Image(systemName: "text.quote")
                     .foregroundColor(.accentColor)
@@ -204,39 +202,24 @@ struct CarPlayStaticWidgetView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Clean header without musical icon
-            HStack(spacing: 4) {
-                Text(entry.trackTitle)
-                    .font(.caption2.bold())
-                    .foregroundColor(.primary.opacity(0.80))
-                    .lineLimit(1)
+            Spacer(minLength: 0)
 
-                if family != .systemSmall {
-                    Text("• \(entry.artistName)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-
-                Spacer()
-            }
-
-            Spacer(minLength: 2)
-
-            // Main active verse (large & bold)
+            // Main active verse (large & bold, full widget space without title header)
             Text(entry.currentLine)
                 .font(.system(size: family == .systemSmall ? 20 : 23, weight: .bold, design: .rounded))
                 .foregroundColor(.primary)
-                .lineLimit(family == .systemSmall ? 3 : 2)
-                .minimumScaleFactor(0.72)
+                .lineLimit(family == .systemSmall ? 4 : 3)
+                .minimumScaleFactor(0.68)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             // Upcoming verse preview
             if !entry.nextLine.isEmpty {
                 Text(entry.nextLine)
-                    .font(.system(size: family == .systemSmall ? 13 : 14, weight: .medium, design: .rounded))
+                    .font(.system(size: family == .systemSmall ? 13 : 15, weight: .medium, design: .rounded))
                     .foregroundColor(.secondary)
-                    .lineLimit(family == .systemSmall ? 2 : 1)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.78)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 

@@ -313,8 +313,10 @@ public final class SpotifyMonitor: NSObject, ObservableObject, ASWebAuthenticati
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
+        let requestStart = Date()
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
+            let rtt = Date().timeIntervalSince(requestStart)
             guard let httpResponse = response as? HTTPURLResponse else { return }
 
             if httpResponse.statusCode == 204 {
@@ -341,8 +343,9 @@ public final class SpotifyMonitor: NSObject, ObservableObject, ASWebAuthenticati
             let artist = item.artists.first?.name ?? "Desconocido"
             let album = item.album.name
             let duration = Double(item.duration_ms) / 1000.0
-            let progress = Double(decoded.progress_ms ?? 0) / 1000.0
             let playing = decoded.is_playing ?? false
+            let rawProgress = Double(decoded.progress_ms ?? 0) / 1000.0
+            let progress = playing ? (rawProgress + (rtt * 0.6)) : rawProgress
 
             let artworkURL = item.album.images?.first.flatMap { URL(string: $0.url) }
 

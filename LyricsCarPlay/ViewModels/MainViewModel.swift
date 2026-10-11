@@ -22,6 +22,7 @@ public final class MainViewModel: ObservableObject {
     @Published public var lyrics: [LyricLine] = []
     @Published public var isLoadingLyrics: Bool = false
     @Published public var errorMessage: String?
+    @Published public var lyricOffset: TimeInterval = 0.85
 
     public let syncEngine = SyncEngine()
 
@@ -40,7 +41,15 @@ public final class MainViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     public init() {
+        self.lyricOffset = syncEngine.lyricOffset
         setupBindings()
+    }
+
+    public func adjustOffset(by delta: TimeInterval) {
+        let newOffset = (lyricOffset + delta * 100).rounded() / 100
+        let rounded = ( (lyricOffset + delta) * 10 ).rounded() / 10
+        self.lyricOffset = rounded
+        self.syncEngine.lyricOffset = rounded
     }
 
     private func setupBindings() {
@@ -147,8 +156,24 @@ public final class MainViewModel: ObservableObject {
             self.lyrics = fetchedLyrics
             self.isLoadingLyrics = false
 
-            // Set up sync engine
-            syncEngine.setLyrics(fetchedLyrics, track: track)
+            // Determine exact instantaneous playback time right after network fetch completes
+            var startTime: TimeInterval = 0.0
+            var playingState: Bool = true
+            switch selectedSource {
+            case .appleMusic:
+                let snapshot = appleMusicMonitor.getCurrentPlaybackSnapshot()
+                startTime = snapshot.time
+                playingState = snapshot.isPlaying
+            case .spotify:
+                startTime = spotifyMonitor.currentPlaybackTime
+                playingState = spotifyMonitor.isPlaying
+            case .mock:
+                startTime = 0.0
+                playingState = true
+            }
+
+            // Set up sync engine at the exact current playback second
+            syncEngine.setLyrics(fetchedLyrics, track: track, initialTime: startTime, isPlaying: playingState)
 
             // Start Live Activity
             if #available(iOS 16.2, *) {

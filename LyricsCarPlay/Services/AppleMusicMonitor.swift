@@ -20,8 +20,18 @@ public final class AppleMusicMonitor: ObservableObject {
         return status == .authorized
     }
 
-    /// Starts observing Now Playing item changes.
-    public func startMonitoring(onTrackChanged: @escaping (TrackInfo) -> Void, onPlaybackTimeUpdated: @escaping (TimeInterval, Bool) -> Void) {
+    /// Returns the instantaneous playback time and playing state from the native system music player.
+    public func getCurrentPlaybackSnapshot() -> (time: TimeInterval, isPlaying: Bool) {
+        let time = player.currentPlaybackTime.isNormal ? player.currentPlaybackTime : 0.0
+        let playing = player.playbackState == .playing
+        return (time, playing)
+    }
+
+    /// Starts observing Now Playing item changes with high-frequency polling (0.15s).
+    public func startMonitoring(
+        onTrackChanged: @escaping (TrackInfo) -> Void,
+        onPlaybackTimeUpdated: @escaping (TimeInterval, Bool) -> Void
+    ) {
         player.beginGeneratingPlaybackNotifications()
 
         NotificationCenter.default.addObserver(
@@ -40,20 +50,23 @@ public final class AppleMusicMonitor: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                self?.handleStateChange()
+                guard let self = self else { return }
+                self.handleStateChange()
+                let snapshot = self.getCurrentPlaybackSnapshot()
+                onPlaybackTimeUpdated(snapshot.time, snapshot.isPlaying)
             }
         }
 
-        // Periodic timer to poll current playback time
-        timer = Timer.publish(every: 0.5, on: .main, in: .common)
+        // High-frequency timer (0.15s) to keep anchor time locked to hardware audio clock
+        timer?.cancel()
+        timer = Timer.publish(every: 0.15, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                let time = self.player.currentPlaybackTime
-                let playing = self.player.playbackState == .playing
-                self.currentPlaybackTime = time
-                self.isPlaying = playing
-                onPlaybackTimeUpdated(time, playing)
+                let snapshot = self.getCurrentPlaybackSnapshot()
+                self.currentPlaybackTime = snapshot.time
+                self.isPlaying = snapshot.isPlaying
+                onPlaybackTimeUpdated(snapshot.time, snapshot.isPlaying)
             }
 
         handleTrackChange(onTrackChanged: onTrackChanged)
@@ -80,8 +93,10 @@ public final class AppleMusicMonitor: ObservableObject {
             duration: duration
         )
 
-        self.currentTrack = track
-        onTrackChanged(track)
+        if self.currentTrack?.id != track.id {
+            self.currentTrack = track
+            onTrackChanged(track)
+        }
     }
 
     private func handleStateChange() {

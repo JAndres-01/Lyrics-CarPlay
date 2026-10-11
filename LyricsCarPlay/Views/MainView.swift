@@ -7,7 +7,7 @@ public struct MainView: View {
 
     public var body: some View {
         NavigationView {
-            VStack(spacing: 16) {
+            VStack(spacing: 12) {
                 // Music Source Picker
                 Picker("Fuente de Música", selection: $viewModel.selectedSource) {
                     ForEach(MusicSource.allCases) { source in
@@ -31,7 +31,7 @@ public struct MainView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Apple Music")
                                 .font(.headline)
-                            Text("Detectando reproducción nativa del sistema...")
+                            Text("Sincronización de baja latencia (60ms)...")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -43,8 +43,8 @@ public struct MainView: View {
                     .padding(.horizontal)
                 }
 
-                // Currently Playing Track Card
-                VStack(spacing: 6) {
+                // Currently Playing Track Card + Sync Offset Control
+                VStack(spacing: 8) {
                     Text(viewModel.currentTrack.title)
                         .font(.headline.bold())
                         .lineLimit(1)
@@ -54,17 +54,44 @@ public struct MainView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
 
-                    // Live Activity Indicator Badge
-                    if #available(iOS 16.2, *) {
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(viewModel.liveActivityManager.isActivityActive ? Color.green : Color.gray)
-                                .frame(width: 8, height: 8)
-                            Text(viewModel.liveActivityManager.isActivityActive ? "Live Activity Activa en CarPlay" : "Live Activity Inactiva")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
+                    Divider()
+                        .padding(.vertical, 2)
+
+                    HStack {
+                        // Live Activity Indicator Badge
+                        if #available(iOS 16.2, *) {
+                            HStack(spacing: 5) {
+                                Circle()
+                                    .fill(viewModel.liveActivityManager.isActivityActive ? Color.green : Color.gray)
+                                    .frame(width: 8, height: 8)
+                                Text(viewModel.liveActivityManager.isActivityActive ? "CarPlay Activo" : "CarPlay Inactivo")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
                         }
-                        .padding(.top, 2)
+
+                        Spacer()
+
+                        // Real-time Lyric Sync Offset Calibrator
+                        HStack(spacing: 8) {
+                            Button(action: {
+                                viewModel.adjustOffset(by: -0.2)
+                            }) {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Text(String(format: "Sync: %+.1fs", viewModel.lyricOffset))
+                                .font(.caption2.monospacedDigit().bold())
+                                .foregroundColor(.accentColor)
+
+                            Button(action: {
+                                viewModel.adjustOffset(by: 0.2)
+                            }) {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.accentColor)
+                            }
+                        }
                     }
                 }
                 .padding(.vertical, 10)

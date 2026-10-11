@@ -28,6 +28,7 @@
 		A00000112C10000000000001 /* CarPlayLiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000112C10000000000001 /* CarPlayLiveActivityView.swift */; };
 		A00000122C10000000000001 /* DynamicIslandViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000122C10000000000001 /* DynamicIslandViews.swift */; };
 		A00000132C10000000000001 /* LyricsAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000042C10000000000001 /* LyricsAttributes.swift */; };
+		A00000152C10000000000001 /* LyricsWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C00000022C10000000000001 /* LyricsWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -114,16 +115,50 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		EMBED_EXTENSIONS = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A00000152C10000000000001 /* LyricsWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		PROXY_EXTENSION = {
+			isa = PBXContainerItemProxy;
+			containerPortal = PROJECT;
+			proxyType = 1;
+			remoteGlobalIDString = TARGET_EXTENSION;
+			remoteInfo = LyricsWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		DEP_EXTENSION = {
+			isa = PBXTargetDependency;
+			target = TARGET_EXTENSION;
+			targetProxy = PROXY_EXTENSION;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXNativeTarget section */
 		TARGET_APP = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CONFIG_APP;
 			buildPhases = (
 				SOURCES_APP,
+				EMBED_EXTENSIONS,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				DEP_EXTENSION,
 			);
 			name = LyricsCarPlay;
 			productName = LyricsCarPlay;

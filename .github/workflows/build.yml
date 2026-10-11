@@ -18,7 +18,7 @@ jobs:
       - name: Build iOS App & Widget Extension (Unsigned)
         run: |
           xcodebuild -project LyricsCarPlay.xcodeproj \
-                     -target LyricsWidgetExtension \
+                     -scheme LyricsCarPlay \
                      -sdk iphoneos \
                      -configuration Release \
                      -derivedDataPath build/ \
@@ -27,22 +27,14 @@ jobs:
                      CODE_SIGNING_ALLOWED=NO \
                      clean build
 
-          xcodebuild -project LyricsCarPlay.xcodeproj \
-                     -target LyricsCarPlay \
-                     -sdk iphoneos \
-                     -configuration Release \
-                     -derivedDataPath build/ \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     build
-
       - name: Package IPA for Sideloadly (with PlugIns/LyricsWidgetExtension.appex)
         run: |
           mkdir -p Payload
           cp -r build/Build/Products/Release-iphoneos/LyricsCarPlay.app Payload/
-          mkdir -p Payload/LyricsCarPlay.app/PlugIns
-          cp -r build/Build/Products/Release-iphoneos/LyricsWidgetExtension.appex Payload/LyricsCarPlay.app/PlugIns/
+          if [ ! -d "Payload/LyricsCarPlay.app/PlugIns/LyricsWidgetExtension.appex" ] && [ -d "build/Build/Products/Release-iphoneos/LyricsWidgetExtension.appex" ]; then
+            mkdir -p Payload/LyricsCarPlay.app/PlugIns
+            cp -r build/Build/Products/Release-iphoneos/LyricsWidgetExtension.appex Payload/LyricsCarPlay.app/PlugIns/
+          fi
           ls -la Payload/LyricsCarPlay.app/PlugIns/
           zip -r LyricsCarPlay.ipa Payload
 

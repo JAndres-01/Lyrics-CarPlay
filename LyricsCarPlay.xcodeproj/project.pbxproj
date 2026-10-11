@@ -21,6 +21,7 @@
 		A000000C2C10000000000001 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000C2C10000000000001 /* MainView.swift */; };
 		A000000D2C10000000000001 /* MockPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000D2C10000000000001 /* MockPlayerView.swift */; };
 		A000000E2C10000000000001 /* LyricsDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000E2C10000000000001 /* LyricsDisplayView.swift */; };
+		A000000F2C10000000000001 /* SpotifyConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000001F2C10000000000001 /* SpotifyConnectView.swift */; };
 
 		A00000102C10000000000001 /* LyricsWidgetExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000102C10000000000001 /* LyricsWidgetExtension.swift */; };
 		A00000112C10000000000001 /* CarPlayLiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000112C10000000000001 /* CarPlayLiveActivityView.swift */; };
@@ -43,6 +44,7 @@
 		B000000C2C10000000000001 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/MainView.swift; sourceTree = "<group>"; };
 		B000000D2C10000000000001 /* MockPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/MockPlayerView.swift; sourceTree = "<group>"; };
 		B000000E2C10000000000001 /* LyricsDisplayView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/LyricsDisplayView.swift; sourceTree = "<group>"; };
+		B000001F2C10000000000001 /* SpotifyConnectView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/SpotifyConnectView.swift; sourceTree = "<group>"; };
 		B000000F2C10000000000001 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 
 		B00000102C10000000000001 /* LyricsWidgetExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LyricsWidgetExtension.swift; sourceTree = "<group>"; };
@@ -81,6 +83,7 @@
 				B000000C2C10000000000001 /* MainView.swift */,
 				B000000D2C10000000000001 /* MockPlayerView.swift */,
 				B000000E2C10000000000001 /* LyricsDisplayView.swift */,
+				B000001F2C10000000000001 /* SpotifyConnectView.swift */,
 				B000000F2C10000000000001 /* Info.plist */,
 			);
 			path = LyricsCarPlay;
@@ -195,6 +198,7 @@
 				A000000C2C10000000000001 /* MainView.swift in Sources */,
 				A000000D2C10000000000001 /* MockPlayerView.swift in Sources */,
 				A000000E2C10000000000001 /* LyricsDisplayView.swift in Sources */,
+				A000000F2C10000000000001 /* SpotifyConnectView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

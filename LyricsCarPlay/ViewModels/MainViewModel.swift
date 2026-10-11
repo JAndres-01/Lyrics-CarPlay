@@ -4,21 +4,24 @@ import SwiftUI
 
 public enum MusicSource: String, CaseIterable, Identifiable {
     case mock = "Simulación (Mock)"
-    case appleMusic = "Apple Music"
     case spotify = "Spotify"
+    case appleMusic = "Apple Music"
 
     public var id: String { rawValue }
 }
 
 @MainActor
 public final class MainViewModel: ObservableObject {
-    @Published public var selectedSource: MusicSource = .mock
+    @Published public var selectedSource: MusicSource = .mock {
+        didSet {
+            handleSourceChanged(selectedSource)
+        }
+    }
     @Published public var currentTrack: TrackInfo = TrackInfo.mock
     @Published public var syncState: SyncState?
     @Published public var lyrics: [LyricLine] = []
     @Published public var isLoadingLyrics: Bool = false
     @Published public var errorMessage: String?
-    @Published public var spotifyToken: String = ""
 
     public let syncEngine = SyncEngine()
 
@@ -57,6 +60,74 @@ public final class MainViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        // Observe Spotify connection status to start polling automatically
+        spotifyMonitor.$isConnected
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] connected in
+                guard let self = self else { return }
+                if connected && self.selectedSource == .spotify {
+                    self.startSpotifyMonitoring()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    public func handleSourceChanged(_ source: MusicSource) {
+        stopAllMonitors()
+
+        switch source {
+        case .mock:
+            self.currentTrack = TrackInfo.mock
+        case .spotify:
+            if spotifyMonitor.isConnected {
+                startSpotifyMonitoring()
+            }
+        case .appleMusic:
+            startAppleMusicMonitoring()
+        }
+    }
+
+    private func stopAllMonitors() {
+        syncEngine.stopMockTimer()
+        spotifyMonitor.stopPolling()
+        appleMusicMonitor.stopMonitoring()
+    }
+
+    public func startSpotifyMonitoring() {
+        guard spotifyMonitor.isConnected else { return }
+        
+        spotifyMonitor.startPolling(
+            onTrackChanged: { [weak self] track in
+                Task { [weak self] in
+                    await self?.loadLyricsAndStart(for: track)
+                }
+            },
+            onPlaybackTimeUpdated: { [weak self] time, isPlaying in
+                self?.syncEngine.updatePlaybackTime(time, isPlaying: isPlaying)
+            }
+        )
+    }
+
+    public func startAppleMusicMonitoring() {
+        Task {
+            let authorized = await appleMusicMonitor.requestAuthorization()
+            guard authorized else {
+                self.errorMessage = "Permiso denegado para Apple Music. Habilítalo en Ajustes."
+                return
+            }
+
+            appleMusicMonitor.startMonitoring(
+                onTrackChanged: { [weak self] track in
+                    Task { [weak self] in
+                        await self?.loadLyricsAndStart(for: track)
+                    }
+                },
+                onPlaybackTimeUpdated: { [weak self] time, isPlaying in
+                    self?.syncEngine.updatePlaybackTime(time, isPlaying: isPlaying)
+                }
+            )
+        }
     }
 
     /// Loads lyrics for the selected track and starts synchronization.
@@ -145,9 +216,7 @@ public final class MainViewModel: ObservableObject {
 
     /// Stops tracking and closes Live Activity.
     public func stop() {
-        syncEngine.stopMockTimer()
-        appleMusicMonitor.stopMonitoring()
-        spotifyMonitor.stopPolling()
+        stopAllMonitors()
         if #available(iOS 16.2, *) {
             liveActivityManager.endActivity()
         }

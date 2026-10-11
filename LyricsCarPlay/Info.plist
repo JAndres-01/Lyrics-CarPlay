@@ -24,6 +24,17 @@
     <string>Esta aplicación requiere acceso a tu biblioteca de música para detectar la canción en reproducción y mostrar las letras en CarPlay.</string>
     <key>NSSupportsLiveActivities</key>
     <true/>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>lyricscarplay</string>
+            </array>
+            <key>CFBundleURLName</key>
+            <string>com.antigravity.LyricsCarPlay</string>
+        </dict>
+    </array>
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>

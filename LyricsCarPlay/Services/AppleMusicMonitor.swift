@@ -10,9 +10,13 @@ public final class AppleMusicMonitor: ObservableObject {
     @Published public private(set) var currentPlaybackTime: TimeInterval = 0.0
 
     private let player = MPMusicPlayerController.systemMusicPlayer
-    private var timer: AnyCancellable?
+    private var timer: DispatchSourceTimer?
 
     public init() {}
+
+    deinit {
+        timer?.cancel()
+    }
 
     /// Requests user authorization to access Apple Music / Media Library.
     public func requestAuthorization() async -> Bool {
@@ -27,7 +31,7 @@ public final class AppleMusicMonitor: ObservableObject {
         return (time, playing)
     }
 
-    /// Starts observing Now Playing item changes with high-frequency polling (0.15s).
+    /// Starts observing Now Playing item changes with high-frequency background-safe polling (0.15s).
     public func startMonitoring(
         onTrackChanged: @escaping (TrackInfo) -> Void,
         onPlaybackTimeUpdated: @escaping (TimeInterval, Bool) -> Void
@@ -57,17 +61,21 @@ public final class AppleMusicMonitor: ObservableObject {
             }
         }
 
-        // High-frequency timer (0.15s) to keep anchor time locked to hardware audio clock
+        // High-frequency DispatchSourceTimer (0.15s) to keep anchor time locked to hardware audio clock even in background
         timer?.cancel()
-        timer = Timer.publish(every: 0.15, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
+        let t = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .userInteractive))
+        t.schedule(deadline: .now(), repeating: .milliseconds(150), leeway: .milliseconds(20))
+        t.setEventHandler { [weak self] in
+            DispatchQueue.main.async {
                 guard let self = self else { return }
                 let snapshot = self.getCurrentPlaybackSnapshot()
                 self.currentPlaybackTime = snapshot.time
                 self.isPlaying = snapshot.isPlaying
                 onPlaybackTimeUpdated(snapshot.time, snapshot.isPlaying)
             }
+        }
+        t.resume()
+        self.timer = t
 
         handleTrackChange(onTrackChanged: onTrackChanged)
     }

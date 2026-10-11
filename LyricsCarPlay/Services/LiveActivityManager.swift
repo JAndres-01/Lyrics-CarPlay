@@ -55,10 +55,16 @@ public final class LiveActivityManager: ObservableObject {
             isPlaying: true
         )
 
+        let initialContent = ActivityContent<LyricsAttributes.ContentState>(
+            state: initialContentState,
+            staleDate: Date().addingTimeInterval(15),
+            relevanceScore: 100.0
+        )
+
         do {
             let activity = try Activity<LyricsAttributes>.request(
                 attributes: attributes,
-                content: .init(state: initialContentState, staleDate: nil),
+                content: initialContent,
                 pushType: nil
             )
             self.currentActivity = activity
@@ -72,6 +78,8 @@ public final class LiveActivityManager: ObservableObject {
             print("Aviso al iniciar Live Activity: \(error.localizedDescription)")
         }
     }
+
+    private var activeUpdateTask: Task<Void, Never>?
 
     /// Updates the running Live Activity card silently in-place (alertConfiguration: nil prevents notification banners).
     public func updateActivity(track: TrackInfo, syncState: SyncState, isPlaying: Bool) {
@@ -92,11 +100,13 @@ public final class LiveActivityManager: ObservableObject {
             isPlaying: isPlaying
         )
 
-        Task {
+        activeUpdateTask?.cancel()
+        activeUpdateTask = Task(priority: .userInitiated) {
             await activity.update(
                 ActivityContent<LyricsAttributes.ContentState>(
                     state: updatedContentState,
-                    staleDate: nil
+                    staleDate: Date().addingTimeInterval(15),
+                    relevanceScore: 100.0
                 ),
                 alertConfiguration: nil
             )
@@ -105,6 +115,9 @@ public final class LiveActivityManager: ObservableObject {
 
     /// Ends all active Live Activity cards immediately and synchronously resets state.
     public func endActivity() {
+        activeUpdateTask?.cancel()
+        activeUpdateTask = nil
+
         let activitiesToEnd = Activity<LyricsAttributes>.activities
         let tracked = self.currentActivity
         self.currentActivity = nil

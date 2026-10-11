@@ -3,9 +3,11 @@ import SwiftUI
 import UIKit
 import WidgetKit
 
-// MARK: - 1. Live Activity Widget (CarPlay Dashboard & Dynamic Island)
+// MARK: - 1. Live Activity Widgets (CarPlay Dashboard & Dynamic Island)
 
-struct LyricsLiveActivityWidget: Widget {
+#if compiler(>=6.0)
+@available(iOSApplicationExtension 18.0, *)
+struct LyricsLiveActivityWidget18: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: LyricsAttributes.self) { context in
             CarPlayLiveActivityView(context: context)
@@ -13,16 +15,42 @@ struct LyricsLiveActivityWidget: Widget {
             DynamicIsland {
                 DynamicIslandViews.expandedView(context: context)
             } compactLeading: {
-                Image(systemName: "text.quote")
-                    .foregroundColor(.accentColor)
+                EmptyView()
             } compactTrailing: {
                 Text(context.state.currentLine)
-                    .font(.caption2.bold())
-                    .lineLimit(1)
-                    .frame(maxWidth: 140)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             } minimal: {
-                Image(systemName: "text.quote")
-                    .foregroundColor(.accentColor)
+                EmptyView()
+            }
+        }
+        .contentMarginsDisabled()
+        .supplementalActivityFamilies([.small])
+    }
+}
+#endif
+
+struct LyricsLiveActivityWidgetLegacy: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: LyricsAttributes.self) { context in
+            CarPlayLiveActivityView(context: context)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandViews.expandedView(context: context)
+            } compactLeading: {
+                EmptyView()
+            } compactTrailing: {
+                Text(context.state.currentLine)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } minimal: {
+                EmptyView()
             }
         }
     }
@@ -63,7 +91,7 @@ struct LyricsTimelineProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (LyricsTimelineEntry) -> Void) {
-        // Must return immediately for iOS / CarPlay Widget Gallery preview
+        // Fast path for Widget Gallery and CarPlay dashboard preview
         if context.isPreview {
             completion(placeholder(in: context))
             return
@@ -76,22 +104,44 @@ struct LyricsTimelineProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LyricsTimelineEntry>) -> Void) {
-        // 1. Fast path (0ms synchronous): Read full pre-scheduled song timeline from shared App Group
+        let now = Date()
+
+        // 1. Fast path (0ms synchronous): Read pre-scheduled song timeline from shared App Group
         if let scheduledPayload = loadScheduledPayloadFromAppGroup(), !scheduledPayload.entries.isEmpty {
-            let timelineEntries = scheduledPayload.entries.map { item in
-                LyricsTimelineEntry(
-                    date: item.date,
-                    trackTitle: scheduledPayload.trackTitle,
-                    artistName: scheduledPayload.artistName,
-                    currentLine: item.currentLine,
-                    nextLine: item.nextLine
+            let upcoming = scheduledPayload.entries.filter { $0.date > now }
+            var timelineEntries: [LyricsTimelineEntry] = []
+
+            // If we have an instantaneous active line in UserDefaults, use it as the first entry at now
+            if let groupEntry = loadFromAppGroup() {
+                timelineEntries.append(groupEntry)
+            }
+
+            // Append future scheduled entries for the rest of the song
+            for item in upcoming {
+                timelineEntries.append(
+                    LyricsTimelineEntry(
+                        date: item.date,
+                        trackTitle: scheduledPayload.trackTitle,
+                        artistName: scheduledPayload.artistName,
+                        currentLine: item.currentLine,
+                        nextLine: item.nextLine
+                    )
                 )
             }
-            completion(Timeline(entries: timelineEntries, policy: .atEnd))
+
+            if !timelineEntries.isEmpty {
+                completion(Timeline(entries: timelineEntries, policy: .atEnd))
+                return
+            }
+        }
+
+        // 2. Fallback: single active line from App Group
+        if let groupEntry = loadFromAppGroup() {
+            completion(Timeline(entries: [groupEntry], policy: .atEnd))
             return
         }
 
-        // 2. Fallback path: Localhost HTTP server
+        // 3. Fallback path: Localhost HTTP server
         fetchFromLocalServer { payload in
             if let payload = payload, !payload.entries.isEmpty {
                 let timelineEntries = payload.entries.map { item in
@@ -105,8 +155,7 @@ struct LyricsTimelineProvider: TimelineProvider {
                 }
                 completion(Timeline(entries: timelineEntries, policy: .atEnd))
             } else if let groupEntry = loadFromAppGroup() {
-                let refreshDate = Date().addingTimeInterval(5)
-                completion(Timeline(entries: [groupEntry], policy: .after(refreshDate)))
+                completion(Timeline(entries: [groupEntry], policy: .atEnd))
             } else {
                 let fallback = LyricsTimelineEntry(
                     date: Date(),
@@ -115,8 +164,7 @@ struct LyricsTimelineProvider: TimelineProvider {
                     currentLine: "Abre LyricsCarPlay y reproduce tu música",
                     nextLine: "Las letras aparecerán aquí en tiempo real"
                 )
-                let refreshDate = Date().addingTimeInterval(15)
-                completion(Timeline(entries: [fallback], policy: .after(refreshDate)))
+                completion(Timeline(entries: [fallback], policy: .atEnd))
             }
         }
     }
@@ -183,6 +231,8 @@ struct LyricsTimelineProvider: TimelineProvider {
     }
 }
 
+// MARK: - Backward-compatible Container Background Helper
+
 extension View {
     @ViewBuilder
     func carPlayWidgetContainerBackground() -> some View {
@@ -204,7 +254,7 @@ struct CarPlayStaticWidgetView: View {
         VStack(alignment: .leading, spacing: 6) {
             Spacer(minLength: 0)
 
-            // Main active verse (large & bold, full widget space without title header)
+            // Main active verse (large & bold, 100% lyrics without title header)
             Text(entry.currentLine)
                 .font(.system(size: family == .systemSmall ? 20 : 23, weight: .bold, design: .rounded))
                 .foregroundColor(.primary)
@@ -225,12 +275,31 @@ struct CarPlayStaticWidgetView: View {
 
             Spacer(minLength: 0)
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .carPlayWidgetContainerBackground()
     }
 }
 
-struct LyricsCarPlayStandbyWidget: Widget {
+#if compiler(>=5.9)
+@available(iOSApplicationExtension 17.0, *)
+struct LyricsCarPlayStandbyWidget17: Widget {
+    let kind: String = "LyricsCarPlayStandbyWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: LyricsTimelineProvider()) { entry in
+            CarPlayStaticWidgetView(entry: entry)
+        }
+        .configurationDisplayName("CarPlay Lyrics")
+        .description("Muestra la letra sincronizada en grande en la pantalla de Widgets de CarPlay.")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
+        .contentMarginsDisabled()
+    }
+}
+#endif
+
+struct LyricsCarPlayStandbyWidgetLegacy: Widget {
     let kind: String = "LyricsCarPlayStandbyWidget"
 
     var body: some WidgetConfiguration {
@@ -243,12 +312,52 @@ struct LyricsCarPlayStandbyWidget: Widget {
     }
 }
 
-// MARK: - Main Widget Bundle (Includes both Punto 1 & Punto 2)
+// MARK: - Main Widget Bundle Launcher
+
+#if compiler(>=6.0)
+@available(iOSApplicationExtension 18.0, *)
+struct LyricsWidgetBundle18: WidgetBundle {
+    var body: some Widget {
+        LyricsLiveActivityWidget18()
+        LyricsCarPlayStandbyWidget17()
+    }
+}
+#endif
+
+#if compiler(>=5.9)
+@available(iOSApplicationExtension 17.0, *)
+struct LyricsWidgetBundle17: WidgetBundle {
+    var body: some Widget {
+        LyricsLiveActivityWidgetLegacy()
+        LyricsCarPlayStandbyWidget17()
+    }
+}
+#endif
+
+struct LyricsWidgetBundleLegacy: WidgetBundle {
+    var body: some Widget {
+        LyricsLiveActivityWidgetLegacy()
+        LyricsCarPlayStandbyWidgetLegacy()
+    }
+}
 
 @main
-struct LyricsWidgetBundle: WidgetBundle {
-    var body: some Widget {
-        LyricsLiveActivityWidget()
-        LyricsCarPlayStandbyWidget()
+struct LyricsWidgetLauncher {
+    static func main() {
+        #if compiler(>=6.0)
+        if #available(iOSApplicationExtension 18.0, *) {
+            LyricsWidgetBundle18.main()
+            return
+        }
+        #endif
+
+        #if compiler(>=5.9)
+        if #available(iOSApplicationExtension 17.0, *) {
+            LyricsWidgetBundle17.main()
+            return
+        }
+        #endif
+
+        LyricsWidgetBundleLegacy.main()
     }
 }

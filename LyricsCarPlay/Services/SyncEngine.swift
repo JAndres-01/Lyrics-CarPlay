@@ -30,7 +30,7 @@ public final class SyncEngine: ObservableObject {
     }
 
     private var timer: AnyCancellable?
-    private var interpolationTimer: AnyCancellable?
+    private var interpolationTimer: DispatchSourceTimer?
     private var trackInfo: TrackInfo?
     private var onLineChanged: ((SyncState) -> Void)?
 
@@ -43,6 +43,11 @@ public final class SyncEngine: ObservableObject {
             self.lyricOffset = UserDefaults.standard.double(forKey: "LyricTimeOffset")
         }
         startInterpolationClock()
+    }
+
+    deinit {
+        interpolationTimer?.cancel()
+        timer?.cancel()
     }
 
     /// Configures the engine with new lyrics and track info.
@@ -90,17 +95,21 @@ public final class SyncEngine: ObservableObject {
         return anchorPlaybackTime + elapsed
     }
 
-    /// High-frequency (60ms / ~16Hz) local clock that triggers lyric line transitions at the exact millisecond.
+    /// High-frequency (50ms) background-safe clock using DispatchSourceTimer that triggers lyric line transitions at the exact millisecond.
     private func startInterpolationClock() {
         interpolationTimer?.cancel()
-        interpolationTimer = Timer.publish(every: 0.06, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .userInteractive))
+        timer.schedule(deadline: .now(), repeating: .milliseconds(50), leeway: .milliseconds(10))
+        timer.setEventHandler { [weak self] in
+            DispatchQueue.main.async {
                 guard let self = self, self.isPlaying, !self.lyrics.isEmpty else { return }
                 let exactTime = self.interpolatedCurrentTime()
                 self.currentTime = exactTime
                 self.updateSyncState(for: exactTime)
             }
+        }
+        timer.resume()
+        self.interpolationTimer = timer
     }
 
     /// Internal calculation of active lyric line based on current timestamp + lookahead offset.

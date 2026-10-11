@@ -60,7 +60,7 @@ public final class SpotifyMonitor: NSObject, ObservableObject, ASWebAuthenticati
         }
     }
 
-    private var pollingTimer: AnyCancellable?
+    private var pollingTimer: DispatchSourceTimer?
     public let redirectURI = "lyricscarplay://spotify-callback"
     private var currentCodeVerifier: String?
 
@@ -262,6 +262,10 @@ public final class SpotifyMonitor: NSObject, ObservableObject, ASWebAuthenticati
         return ASPresentationAnchor()
     }
 
+    deinit {
+        pollingTimer?.cancel()
+    }
+
     // MARK: - Playback Polling
 
     /// Starts polling Spotify Currently Playing API if access token is available.
@@ -272,18 +276,20 @@ public final class SpotifyMonitor: NSObject, ObservableObject, ASWebAuthenticati
         guard let token = accessToken, !token.isEmpty else { return }
         stopPolling()
 
-        pollingTimer = Timer.publish(every: 1.0, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                Task { [weak self] in
-                    guard let self = self, let currentToken = self.accessToken else { return }
-                    await self.fetchCurrentlyPlaying(
-                        token: currentToken,
-                        onTrackChanged: onTrackChanged,
-                        onPlaybackTimeUpdated: onPlaybackTimeUpdated
-                    )
-                }
+        let t = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
+        t.schedule(deadline: .now(), repeating: .seconds(1), leeway: .milliseconds(100))
+        t.setEventHandler { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self = self, let currentToken = self.accessToken else { return }
+                await self.fetchCurrentlyPlaying(
+                    token: currentToken,
+                    onTrackChanged: onTrackChanged,
+                    onPlaybackTimeUpdated: onPlaybackTimeUpdated
+                )
             }
+        }
+        t.resume()
+        self.pollingTimer = t
     }
 
     public func stopPolling() {

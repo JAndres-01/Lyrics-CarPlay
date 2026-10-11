@@ -73,8 +73,8 @@ public final class MainViewModel: ObservableObject {
         let defaults = UserDefaults.standard
         defaults.set(track.title, forKey: "WidgetTrackTitle")
         defaults.set(track.artist, forKey: "WidgetArtistName")
-        defaults.set(state.currentLineText, forKey: "WidgetCurrentLine")
-        defaults.set(state.nextLineText, forKey: "WidgetNextLine")
+        defaults.set(state.currentLine, forKey: "WidgetCurrentLine")
+        defaults.set(state.nextLine, forKey: "WidgetNextLine")
         if #available(iOS 14.0, *) {
             WidgetCenter.shared.reloadAllTimelines()
         }

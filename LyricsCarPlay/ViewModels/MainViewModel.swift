@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import SwiftUI
+import WidgetKit
 
 public enum MusicSource: String, CaseIterable, Identifiable {
     case mock = "Simulación (Mock)"
@@ -23,6 +24,20 @@ public final class MainViewModel: ObservableObject {
     @Published public var isLoadingLyrics: Bool = false
     @Published public var errorMessage: String?
     @Published public var lyricOffset: TimeInterval = 0.85
+    @Published public var isLiveActivityEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(isLiveActivityEnabled, forKey: "LiveActivityEnabled")
+            if #available(iOS 16.2, *) {
+                if isLiveActivityEnabled {
+                    if let state = syncState {
+                        liveActivityManager.startActivity(track: currentTrack, initialSyncState: state)
+                    }
+                } else {
+                    liveActivityManager.endActivity()
+                }
+            }
+        }
+    }
 
     public let syncEngine = SyncEngine()
 
@@ -42,14 +57,27 @@ public final class MainViewModel: ObservableObject {
 
     public init() {
         self.lyricOffset = syncEngine.lyricOffset
+        if UserDefaults.standard.object(forKey: "LiveActivityEnabled") != nil {
+            self.isLiveActivityEnabled = UserDefaults.standard.bool(forKey: "LiveActivityEnabled")
+        }
         setupBindings()
     }
 
     public func adjustOffset(by delta: TimeInterval) {
-        let newOffset = (lyricOffset + delta * 100).rounded() / 100
-        let rounded = ( (lyricOffset + delta) * 10 ).rounded() / 10
+        let rounded = ((lyricOffset + delta) * 10).rounded() / 10
         self.lyricOffset = rounded
         self.syncEngine.lyricOffset = rounded
+    }
+
+    private func updateStandbyWidget(track: TrackInfo, state: SyncState) {
+        let defaults = UserDefaults.standard
+        defaults.set(track.title, forKey: "WidgetTrackTitle")
+        defaults.set(track.artist, forKey: "WidgetArtistName")
+        defaults.set(state.currentLineText, forKey: "WidgetCurrentLine")
+        defaults.set(state.nextLineText, forKey: "WidgetNextLine")
+        if #available(iOS 14.0, *) {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
 
     private func setupBindings() {
@@ -58,13 +86,22 @@ public final class MainViewModel: ObservableObject {
             .sink { [weak self] state in
                 guard let self = self, let state = state else { return }
                 self.syncState = state
+                self.updateStandbyWidget(track: self.currentTrack, state: state)
+
                 if #available(iOS 16.2, *) {
-                    if self.liveActivityManager.isActivityActive {
-                        self.liveActivityManager.updateActivity(
-                            track: self.currentTrack,
-                            syncState: state,
-                            isPlaying: self.syncEngine.isPlaying
-                        )
+                    if self.isLiveActivityEnabled {
+                        if self.liveActivityManager.isActivityActive {
+                            self.liveActivityManager.updateActivity(
+                                track: self.currentTrack,
+                                syncState: state,
+                                isPlaying: self.syncEngine.isPlaying
+                            )
+                        } else {
+                            self.liveActivityManager.startActivity(
+                                track: self.currentTrack,
+                                initialSyncState: state
+                            )
+                        }
                     }
                 }
             }
@@ -175,8 +212,8 @@ public final class MainViewModel: ObservableObject {
             // Set up sync engine at the exact current playback second
             syncEngine.setLyrics(fetchedLyrics, track: track, initialTime: startTime, isPlaying: playingState)
 
-            // Start Live Activity
-            if #available(iOS 16.2, *) {
+            // Start Live Activity if enabled
+            if #available(iOS 16.2, *), isLiveActivityEnabled {
                 if let initialState = syncEngine.currentSyncState {
                     liveActivityManager.startActivity(track: track, initialSyncState: initialState)
                 }
@@ -201,7 +238,7 @@ public final class MainViewModel: ObservableObject {
     /// Sample lyrics fallback for instant offline testing of Bohemian Rhapsody.
     private func loadFallbackMockLyrics(for track: TrackInfo) {
         let rawMockLRC = """
-        [00:00.00] 🎵 (Intro Instrumental)
+        [00:00.00] (Intro Instrumental)
         [00:15.50] Is this the real life? Is this just fantasy?
         [00:24.00] Caught in a landslide, no escape from reality
         [00:32.00] Open your eyes, look up to the skies and see
@@ -222,7 +259,7 @@ public final class MainViewModel: ObservableObject {
         self.errorMessage = nil
         syncEngine.setLyrics(parsed, track: track)
         
-        if #available(iOS 16.2, *) {
+        if #available(iOS 16.2, *), isLiveActivityEnabled {
             if let initialState = syncEngine.currentSyncState {
                 liveActivityManager.startActivity(track: track, initialSyncState: initialState)
             }

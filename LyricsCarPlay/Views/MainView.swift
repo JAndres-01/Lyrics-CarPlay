@@ -58,15 +58,23 @@ public struct MainView: View {
                         .padding(.vertical, 2)
 
                     HStack {
-                        // Live Activity Indicator Badge
+                        // Interactive Live Activity Toggle (Point 1 ON/OFF)
                         if #available(iOS 16.2, *) {
-                            HStack(spacing: 5) {
-                                Circle()
-                                    .fill(viewModel.liveActivityManager.isActivityActive ? Color.green : Color.gray)
-                                    .frame(width: 8, height: 8)
-                                Text(viewModel.liveActivityManager.isActivityActive ? "CarPlay Activo" : "CarPlay Inactivo")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
+                            Button(action: {
+                                viewModel.isLiveActivityEnabled.toggle()
+                            }) {
+                                HStack(spacing: 5) {
+                                    Circle()
+                                        .fill(viewModel.isLiveActivityEnabled ? Color.green : Color.gray)
+                                        .frame(width: 8, height: 8)
+                                    Text(viewModel.isLiveActivityEnabled ? "Live Activity: ON" : "Live Activity: OFF")
+                                        .font(.caption2.bold())
+                                        .foregroundColor(viewModel.isLiveActivityEnabled ? .primary : .secondary)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .cornerRadius(8)
                             }
                         }
 
@@ -145,7 +153,7 @@ public struct MainView: View {
                     .padding(.bottom, 12)
                 }
             }
-            .navigationTitle("CarPlay Lyrics 🎵")
+            .navigationTitle("CarPlay Lyrics")
             .onAppear {
                 if viewModel.selectedSource == .mock {
                     Task {

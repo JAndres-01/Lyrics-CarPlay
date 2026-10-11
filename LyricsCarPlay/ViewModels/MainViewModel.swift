@@ -60,6 +60,7 @@ public final class MainViewModel: ObservableObject {
         if UserDefaults.standard.object(forKey: "LiveActivityEnabled") != nil {
             self.isLiveActivityEnabled = UserDefaults.standard.bool(forKey: "LiveActivityEnabled")
         }
+        LocalWidgetServer.shared.start()
         setupBindings()
     }
 
@@ -70,11 +71,41 @@ public final class MainViewModel: ObservableObject {
     }
 
     private func updateStandbyWidget(track: TrackInfo, state: SyncState) {
-        let defaults = UserDefaults.standard
-        defaults.set(track.title, forKey: "WidgetTrackTitle")
-        defaults.set(track.artist, forKey: "WidgetArtistName")
-        defaults.set(state.currentLine, forKey: "WidgetCurrentLine")
-        defaults.set(state.nextLine, forKey: "WidgetNextLine")
+        let now = Date()
+        var entries: [WidgetScheduledLine] = [
+            WidgetScheduledLine(date: now, currentLine: state.currentLine, nextLine: state.nextLine)
+        ]
+
+        if syncEngine.isPlaying && !lyrics.isEmpty {
+            let effectiveTime = syncEngine.currentTime + syncEngine.lyricOffset
+            let startIdx = max(0, state.currentIndex + 1)
+            if startIdx < lyrics.count {
+                let endIdx = min(lyrics.count, startIdx + 40)
+                for idx in startIdx..<endIdx {
+                    let line = lyrics[idx]
+                    let nextText = (idx + 1 < lyrics.count) ? lyrics[idx + 1].text : ""
+                    let delay = line.timestamp - effectiveTime
+                    if delay > 0.05 {
+                        entries.append(
+                            WidgetScheduledLine(
+                                date: now.addingTimeInterval(delay),
+                                currentLine: line.text,
+                                nextLine: nextText
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        let payload = WidgetSyncPayload(
+            trackTitle: track.title,
+            artistName: track.artist,
+            isPlaying: syncEngine.isPlaying,
+            entries: entries
+        )
+        LocalWidgetServer.shared.updatePayload(payload)
+
         if #available(iOS 14.0, *) {
             WidgetCenter.shared.reloadAllTimelines()
         }

@@ -15,10 +15,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build iOS App (Unsigned)
+      - name: Build iOS App & Widget Extension (Unsigned)
         run: |
           xcodebuild -project LyricsCarPlay.xcodeproj \
-                     -scheme LyricsCarPlay \
+                     -target LyricsWidgetExtension \
                      -sdk iphoneos \
                      -configuration Release \
                      -derivedDataPath build/ \
@@ -27,10 +27,23 @@ jobs:
                      CODE_SIGNING_ALLOWED=NO \
                      clean build
 
-      - name: Package IPA for Sideloadly
+          xcodebuild -project LyricsCarPlay.xcodeproj \
+                     -target LyricsCarPlay \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -derivedDataPath build/ \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     build
+
+      - name: Package IPA for Sideloadly (with PlugIns/LyricsWidgetExtension.appex)
         run: |
           mkdir -p Payload
           cp -r build/Build/Products/Release-iphoneos/LyricsCarPlay.app Payload/
+          mkdir -p Payload/LyricsCarPlay.app/PlugIns
+          cp -r build/Build/Products/Release-iphoneos/LyricsWidgetExtension.appex Payload/LyricsCarPlay.app/PlugIns/
+          ls -la Payload/LyricsCarPlay.app/PlugIns/
           zip -r LyricsCarPlay.ipa Payload
 
       - name: Archive Artifacts

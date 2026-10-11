@@ -1,10 +1,12 @@
 import SwiftUI
+import UIKit
 
 public struct SpotifyConnectView: View {
     @ObservedObject var viewModel: MainViewModel
-    @State private var showingAdvancedSettings: Bool = false
+    @State private var showingSetupGuide: Bool = false
     @State private var clientIdInput: String = ""
     @State private var manualToken: String = ""
+    @State private var copiedRedirect: Bool = false
 
     public var body: some View {
         VStack(spacing: 12) {
@@ -16,7 +18,7 @@ public struct SpotifyConnectView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Spotify")
                         .font(.headline)
-                    Text(viewModel.spotifyMonitor.isConnected ? "Conectado • Detectando música..." : "No conectado")
+                    Text(viewModel.spotifyMonitor.isConnected ? "Conectado • Detectando música..." : "No conectado (OAuth 2.0 PKCE)")
                         .font(.caption)
                         .foregroundColor(viewModel.spotifyMonitor.isConnected ? .green : .secondary)
                 }
@@ -39,6 +41,45 @@ public struct SpotifyConnectView: View {
             }
 
             if !viewModel.spotifyMonitor.isConnected {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("1. Ingresa tu Spotify Client ID:")
+                        .font(.caption.bold())
+                        .foregroundColor(.secondary)
+
+                    TextField("Pega tu Spotify Client ID aquí", text: $clientIdInput)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.caption)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+
+                    HStack {
+                        Button(action: {
+                            UIPasteboard.general.string = "lyricscarplay://spotify-callback"
+                            copiedRedirect = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                copiedRedirect = false
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: copiedRedirect ? "checkmark.circle.fill" : "doc.on.doc")
+                                Text(copiedRedirect ? "¡Copiado!" : "Copiar Redirect URI")
+                            }
+                            .font(.caption2.bold())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color.accentColor.opacity(0.15))
+                            .cornerRadius(6)
+                        }
+
+                        Spacer()
+
+                        if let url = URL(string: "https://developer.spotify.com/dashboard") {
+                            Link("Abrir Spotify Dashboard ↗", destination: url)
+                                .font(.caption2.bold())
+                        }
+                    }
+                }
+
                 Button(action: {
                     if !clientIdInput.isEmpty {
                         viewModel.spotifyMonitor.clientId = clientIdInput
@@ -51,39 +92,43 @@ public struct SpotifyConnectView: View {
                 }) {
                     HStack {
                         Image(systemName: "waveform")
-                        Text("Iniciar Sesión con Spotify")
+                        Text("Conectar con Spotify")
                             .bold()
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(.vertical, 12)
                     .background(Color.green)
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
 
                 Button(action: {
-                    showingAdvancedSettings.toggle()
+                    showingSetupGuide.toggle()
                 }) {
-                    Text(showingAdvancedSettings ? "Ocultar opciones avanzadas" : "Ingresar token o Client ID manual")
-                        .font(.caption)
+                    Text(showingSetupGuide ? "Ocultar ayuda / token manual" : "¿Cómo obtener mi Client ID en 30 seg?")
+                        .font(.caption2)
                         .foregroundColor(.secondary)
                 }
 
-                if showingAdvancedSettings {
-                    VStack(spacing: 8) {
-                        TextField("Spotify Client ID", text: $clientIdInput)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.caption)
+                if showingSetupGuide {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Pasos rápidos en developer.spotify.com/dashboard:")
+                            .font(.caption2.bold())
+                        Text("• Toca 'Create App' y pon cualquier nombre.")
+                            .font(.caption2)
+                        Text("• En Redirect URIs pega: lyricscarplay://spotify-callback")
+                            .font(.caption2.bold())
+                        Text("• Guarda, copia el 'Client ID' y pégalo arriba.")
+                            .font(.caption2)
+
+                        Divider().padding(.vertical, 2)
 
                         HStack {
-                            TextField("O pega Token de Spotify", text: $manualToken)
+                            TextField("O pega un Access Token directo", text: $manualToken)
                                 .textFieldStyle(.roundedBorder)
-                                .font(.caption)
+                                .font(.caption2)
 
-                            Button("Guardar") {
-                                if !clientIdInput.isEmpty {
-                                    viewModel.spotifyMonitor.clientId = clientIdInput
-                                }
+                            Button("Usar") {
                                 if !manualToken.isEmpty {
                                     viewModel.spotifyMonitor.accessToken = manualToken
                                     viewModel.spotifyMonitor.isConnected = true
@@ -91,10 +136,12 @@ public struct SpotifyConnectView: View {
                                 }
                             }
                             .buttonStyle(.borderedProminent)
-                            .font(.caption)
+                            .font(.caption2)
                         }
                     }
-                    .padding(.top, 4)
+                    .padding(8)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(8)
                 }
             }
 

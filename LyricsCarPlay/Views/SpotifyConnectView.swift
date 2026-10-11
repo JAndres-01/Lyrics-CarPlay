@@ -3,6 +3,7 @@ import SwiftUI
 public struct SpotifyConnectView: View {
     @ObservedObject var viewModel: MainViewModel
     @State private var showingAdvancedSettings: Bool = false
+    @State private var clientIdInput: String = ""
     @State private var manualToken: String = ""
 
     public var body: some View {
@@ -39,6 +40,9 @@ public struct SpotifyConnectView: View {
 
             if !viewModel.spotifyMonitor.isConnected {
                 Button(action: {
+                    if !clientIdInput.isEmpty {
+                        viewModel.spotifyMonitor.clientId = clientIdInput
+                    }
                     viewModel.spotifyMonitor.authenticateWithSpotify { success in
                         if success {
                             viewModel.startSpotifyMonitoring()
@@ -60,23 +64,26 @@ public struct SpotifyConnectView: View {
                 Button(action: {
                     showingAdvancedSettings.toggle()
                 }) {
-                    Text(showingAdvancedSettings ? "Ocultar token manual" : "Ingresar token o Client ID manual")
+                    Text(showingAdvancedSettings ? "Ocultar opciones avanzadas" : "Ingresar token o Client ID manual")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
 
                 if showingAdvancedSettings {
                     VStack(spacing: 8) {
-                        TextField("Spotify Client ID", text: $viewModel.spotifyMonitor.clientId)
+                        TextField("Spotify Client ID", text: $clientIdInput)
                             .textFieldStyle(.roundedBorder)
                             .font(.caption)
 
                         HStack {
-                            TextField("O pega Token Temporal de Spotify", text: $manualToken)
+                            TextField("O pega Token de Spotify", text: $manualToken)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.caption)
 
                             Button("Guardar") {
+                                if !clientIdInput.isEmpty {
+                                    viewModel.spotifyMonitor.clientId = clientIdInput
+                                }
                                 if !manualToken.isEmpty {
                                     viewModel.spotifyMonitor.accessToken = manualToken
                                     viewModel.spotifyMonitor.isConnected = true
@@ -101,5 +108,8 @@ public struct SpotifyConnectView: View {
         .padding()
         .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(16)
+        .onAppear {
+            self.clientIdInput = viewModel.spotifyMonitor.clientId
+        }
     }
 }

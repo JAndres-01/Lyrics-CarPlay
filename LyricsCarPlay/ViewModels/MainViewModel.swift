@@ -35,7 +35,7 @@ public final class MainViewModel: ObservableObject {
     }
 
     public let appleMusicMonitor = AppleMusicMonitor()
-    public let spotifyMonitor = SpotifyMonitor()
+    public var spotifyMonitor = SpotifyMonitor()
     private let lrclibService = LRCLIBService()
     private var cancellables = Set<AnyCancellable>()
 

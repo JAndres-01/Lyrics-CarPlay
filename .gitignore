@@ -1,0 +1,5 @@
+*.ipa
+*.zip
+build/
+DerivedData/
+.DS_Store

@@ -78,6 +78,22 @@ struct LyricsTimelineProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LyricsTimelineEntry>) -> Void) {
+        // 1. Fast path (0ms synchronous): Read full pre-scheduled song timeline from shared App Group
+        if let scheduledPayload = loadScheduledPayloadFromAppGroup(), !scheduledPayload.entries.isEmpty {
+            let timelineEntries = scheduledPayload.entries.map { item in
+                LyricsTimelineEntry(
+                    date: item.date,
+                    trackTitle: scheduledPayload.trackTitle,
+                    artistName: scheduledPayload.artistName,
+                    currentLine: item.currentLine,
+                    nextLine: item.nextLine
+                )
+            }
+            completion(Timeline(entries: timelineEntries, policy: .atEnd))
+            return
+        }
+
+        // 2. Fallback path: Localhost HTTP server
         fetchFromLocalServer { payload in
             if let payload = payload, !payload.entries.isEmpty {
                 let timelineEntries = payload.entries.map { item in
@@ -89,8 +105,7 @@ struct LyricsTimelineProvider: TimelineProvider {
                         nextLine: item.nextLine
                     )
                 }
-                let refreshDate = Date().addingTimeInterval(15)
-                completion(Timeline(entries: timelineEntries, policy: .after(refreshDate)))
+                completion(Timeline(entries: timelineEntries, policy: .atEnd))
             } else if let groupEntry = loadFromAppGroup() {
                 let refreshDate = Date().addingTimeInterval(5)
                 completion(Timeline(entries: [groupEntry], policy: .after(refreshDate)))
@@ -102,21 +117,37 @@ struct LyricsTimelineProvider: TimelineProvider {
                     currentLine: "Abre LyricsCarPlay y reproduce tu música",
                     nextLine: "Las letras aparecerán aquí en tiempo real"
                 )
-                let refreshDate = Date().addingTimeInterval(10)
+                let refreshDate = Date().addingTimeInterval(15)
                 completion(Timeline(entries: [fallback], policy: .after(refreshDate)))
             }
         }
     }
 
-    private func loadFromAppGroup() -> LyricsTimelineEntry? {
+    private var appGroupSuites: [String] {
         let extBundleID = Bundle.main.bundleIdentifier ?? "com.antigravity.LyricsCarPlay.LyricsWidgetExtension"
         let baseBundleID = extBundleID.replacingOccurrences(of: ".LyricsWidgetExtension", with: "")
-        let suiteCandidates = [
+        return [
             "group.\(baseBundleID)",
             "group.com.antigravity.LyricsCarPlay.RN6X4K84VZ",
             "group.com.antigravity.LyricsCarPlay"
         ]
-        for suite in suiteCandidates {
+    }
+
+    private func loadScheduledPayloadFromAppGroup() -> WidgetSyncPayloadDTO? {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        for suite in appGroupSuites {
+            if let defaults = UserDefaults(suiteName: suite),
+               let data = defaults.data(forKey: "WidgetScheduledPayloadData"),
+               let decoded = try? decoder.decode(WidgetSyncPayloadDTO.self, from: data) {
+                return decoded
+            }
+        }
+        return nil
+    }
+
+    private func loadFromAppGroup() -> LyricsTimelineEntry? {
+        for suite in appGroupSuites {
             if let defaults = UserDefaults(suiteName: suite),
                let title = defaults.string(forKey: "WidgetTrackTitle"),
                let currentLine = defaults.string(forKey: "WidgetCurrentLine") {

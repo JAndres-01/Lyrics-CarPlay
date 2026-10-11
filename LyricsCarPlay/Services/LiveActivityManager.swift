@@ -2,6 +2,7 @@ import ActivityKit
 import Foundation
 
 /// Controller managing the lifecycle of Live Activities (ActivityKit) for CarPlay & Dynamic Island.
+/// Reuses a single persistent Activity instance so iOS never stacks notifications or hits background request errors.
 @MainActor
 @available(iOS 16.2, *)
 public final class LiveActivityManager: ObservableObject {
@@ -9,20 +10,41 @@ public final class LiveActivityManager: ObservableObject {
     @Published public private(set) var lastErrorMessage: String? = nil
     private var currentActivity: Activity<LyricsAttributes>?
 
-    public init() {}
+    public init() {
+        // Adopt existing activity if one is already running from earlier in the session
+        let existing = Activity<LyricsAttributes>.activities
+        if let first = existing.first {
+            self.currentActivity = first
+            self.isActivityActive = true
+            // Clean up any stray duplicates from older builds
+            if existing.count > 1 {
+                for extra in existing.dropFirst() {
+                    Task {
+                        await extra.end(nil, dismissalPolicy: .immediate)
+                    }
+                }
+            }
+        }
+    }
 
-    /// Starts a Live Activity for a given track and initial sync state.
+    /// Starts a single Live Activity if none exists, or updates the existing one in-place without notifications.
     public func startActivity(track: TrackInfo, initialSyncState: SyncState) {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            self.lastErrorMessage = "Activa 'Actividades en vivo' en Ajustes > LyricsCarPlay."
-            print("Live Activities no están habilitadas en Ajustes de iOS.")
+        // If an activity already exists, reuse it and update in-place instead of requesting a new banner!
+        if let existing = currentActivity ?? Activity<LyricsAttributes>.activities.first,
+           existing.activityState == .active {
+            self.currentActivity = existing
+            self.isActivityActive = true
+            self.lastErrorMessage = nil
+            updateActivity(track: track, syncState: initialSyncState, isPlaying: true)
             return
         }
 
-        // End any existing activity first
-        endActivity()
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            self.lastErrorMessage = "Activa 'Actividades en vivo' en Ajustes > LyricsCarPlay."
+            return
+        }
 
-        let attributes = LyricsAttributes(trackId: track.id)
+        let attributes = LyricsAttributes(trackId: "carplay-lyrics-session")
         let initialContentState = LyricsAttributes.ContentState(
             currentLine: initialSyncState.currentLine,
             nextLine: initialSyncState.nextLine,
@@ -42,17 +64,23 @@ public final class LiveActivityManager: ObservableObject {
             self.currentActivity = activity
             self.isActivityActive = true
             self.lastErrorMessage = nil
-            print("Live Activity iniciada con éxito (ID: \(activity.id))")
         } catch {
-            self.isActivityActive = false
-            self.lastErrorMessage = "Extensión de Widget no instalada (\(error.localizedDescription)). Asegúrate de NO eliminar 'App Extensions / PlugIns' al instalar el IPA."
-            print("Error al iniciar Live Activity: \(error.localizedDescription)")
+            // Only report error if there is truly no active activity running
+            if Activity<LyricsAttributes>.activities.isEmpty {
+                self.isActivityActive = false
+            }
+            print("Aviso al iniciar Live Activity: \(error.localizedDescription)")
         }
     }
 
-    /// Updates the running Live Activity card on CarPlay and Lock Screen.
+    /// Updates the running Live Activity card silently in-place (alertConfiguration: nil prevents notification banners).
     public func updateActivity(track: TrackInfo, syncState: SyncState, isPlaying: Bool) {
-        guard let activity = currentActivity else { return }
+        guard let activity = currentActivity ?? Activity<LyricsAttributes>.activities.first else {
+            return
+        }
+        self.currentActivity = activity
+        self.isActivityActive = true
+        self.lastErrorMessage = nil
 
         let updatedContentState = LyricsAttributes.ContentState(
             currentLine: syncState.currentLine,
@@ -69,26 +97,26 @@ public final class LiveActivityManager: ObservableObject {
                 ActivityContent<LyricsAttributes.ContentState>(
                     state: updatedContentState,
                     staleDate: nil
-                )
+                ),
+                alertConfiguration: nil
             )
         }
     }
 
-    /// Ends the active Live Activity card.
+    /// Ends all active Live Activity cards immediately and synchronously resets state.
     public func endActivity() {
-        guard let activity = currentActivity else { return }
+        let activitiesToEnd = Activity<LyricsAttributes>.activities
+        let tracked = self.currentActivity
+        self.currentActivity = nil
+        self.isActivityActive = false
 
         Task {
-            await activity.end(
-                ActivityContent<LyricsAttributes.ContentState>(
-                    state: activity.content.state,
-                    staleDate: nil
-                ),
-                dismissalPolicy: .immediate
-            )
-            self.currentActivity = nil
-            self.isActivityActive = false
-            print("Live Activity finalizada.")
+            if let tracked = tracked {
+                await tracked.end(nil, dismissalPolicy: .immediate)
+            }
+            for activity in activitiesToEnd {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
         }
     }
 }

@@ -60,6 +60,7 @@ public final class MainViewModel: ObservableObject {
         if UserDefaults.standard.object(forKey: "LiveActivityEnabled") != nil {
             self.isLiveActivityEnabled = UserDefaults.standard.bool(forKey: "LiveActivityEnabled")
         }
+        BackgroundAudioKeepAlive.shared.start()
         LocalWidgetServer.shared.start()
         setupBindings()
     }
@@ -70,14 +71,18 @@ public final class MainViewModel: ObservableObject {
         self.syncEngine.lyricOffset = rounded
     }
 
-    private func updateStandbyWidget(track: TrackInfo, state: SyncState) {
+    private var appGroupSuites: [String] {
         let appBundleID = Bundle.main.bundleIdentifier ?? "com.antigravity.LyricsCarPlay"
-        let suiteCandidates = [
+        return [
             "group.\(appBundleID)",
             "group.com.antigravity.LyricsCarPlay.RN6X4K84VZ",
             "group.com.antigravity.LyricsCarPlay"
         ]
-        for suite in suiteCandidates {
+    }
+
+    /// Saves the instantaneous active verse to App Group UserDefaults without forcing WidgetKit to reload timelines.
+    private func saveCurrentLineToAppGroup(track: TrackInfo, state: SyncState) {
+        for suite in appGroupSuites {
             if let defaults = UserDefaults(suiteName: suite) {
                 defaults.set(track.title, forKey: "WidgetTrackTitle")
                 defaults.set(track.artist, forKey: "WidgetArtistName")
@@ -85,6 +90,18 @@ public final class MainViewModel: ObservableObject {
                 defaults.set(state.nextLine, forKey: "WidgetNextLine")
             }
         }
+    }
+
+    /// Pre-schedules the entire song's upcoming lyric verses into WidgetKit so CarPlay flips verses at the exact millisecond with zero IPC lag.
+    private func reloadStandbyWidgetSchedule() {
+        let track = currentTrack
+        let state = syncEngine.currentSyncState ?? SyncState(
+            currentLine: "...",
+            nextLine: lyrics.first?.text ?? "",
+            previousLine: "",
+            currentIndex: -1,
+            progress: 0.0
+        )
 
         let now = Date()
         var entries: [WidgetScheduledLine] = [
@@ -92,15 +109,16 @@ public final class MainViewModel: ObservableObject {
         ]
 
         if syncEngine.isPlaying && !lyrics.isEmpty {
-            let effectiveTime = syncEngine.currentTime + syncEngine.lyricOffset
+            // Add +0.35s extra anticipation for WidgetKit rendering on CarPlay screen
+            let effectiveTime = syncEngine.currentTime + syncEngine.lyricOffset + 0.35
             let startIdx = max(0, state.currentIndex + 1)
             if startIdx < lyrics.count {
-                let endIdx = min(lyrics.count, startIdx + 40)
+                let endIdx = min(lyrics.count, startIdx + 90)
                 for idx in startIdx..<endIdx {
                     let line = lyrics[idx]
                     let nextText = (idx + 1 < lyrics.count) ? lyrics[idx + 1].text : ""
                     let delay = line.timestamp - effectiveTime
-                    if delay > 0.05 {
+                    if delay > 0.02 {
                         entries.append(
                             WidgetScheduledLine(
                                 date: now.addingTimeInterval(delay),
@@ -119,8 +137,26 @@ public final class MainViewModel: ObservableObject {
             isPlaying: syncEngine.isPlaying,
             entries: entries
         )
+
+        // 1. Save full scheduled payload to shared App Group UserDefaults for 0ms synchronous Widget read
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        if let encodedData = try? encoder.encode(payload) {
+            for suite in appGroupSuites {
+                if let defaults = UserDefaults(suiteName: suite) {
+                    defaults.set(encodedData, forKey: "WidgetScheduledPayloadData")
+                    defaults.set(track.title, forKey: "WidgetTrackTitle")
+                    defaults.set(track.artist, forKey: "WidgetArtistName")
+                    defaults.set(state.currentLine, forKey: "WidgetCurrentLine")
+                    defaults.set(state.nextLine, forKey: "WidgetNextLine")
+                }
+            }
+        }
+
+        // 2. Also update localhost HTTP fallback
         LocalWidgetServer.shared.updatePayload(payload)
 
+        // 3. Reload WidgetKit timeline ONLY on schedule changes (not on every verse!)
         if #available(iOS 14.0, *) {
             WidgetCenter.shared.reloadAllTimelines()
         }
@@ -132,7 +168,7 @@ public final class MainViewModel: ObservableObject {
             .sink { [weak self] state in
                 guard let self = self, let state = state else { return }
                 self.syncState = state
-                self.updateStandbyWidget(track: self.currentTrack, state: state)
+                self.saveCurrentLineToAppGroup(track: self.currentTrack, state: state)
 
                 if #available(iOS 16.2, *) {
                     if self.isLiveActivityEnabled {
@@ -147,12 +183,18 @@ public final class MainViewModel: ObservableObject {
                                 track: self.currentTrack,
                                 initialSyncState: state
                             )
-                            if let err = self.liveActivityManager.lastErrorMessage {
-                                self.errorMessage = err
-                            }
                         }
                     }
                 }
+            }
+            .store(in: &cancellables)
+
+        // Reload WidgetKit schedule ONLY when song starts, seeks, pauses/resumes, or offset changes
+        syncEngine.$timelineRevision
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.reloadStandbyWidgetSchedule()
             }
             .store(in: &cancellables)
 
@@ -258,15 +300,8 @@ public final class MainViewModel: ObservableObject {
                 playingState = true
             }
 
-            // Set up sync engine at the exact current playback second
+            // Set up sync engine at the exact current playback second (triggers $currentSyncState and $timelineRevision)
             syncEngine.setLyrics(fetchedLyrics, track: track, initialTime: startTime, isPlaying: playingState)
-
-            // Start Live Activity if enabled
-            if #available(iOS 16.2, *), isLiveActivityEnabled {
-                if let initialState = syncEngine.currentSyncState {
-                    liveActivityManager.startActivity(track: track, initialSyncState: initialState)
-                }
-            }
 
             // If in mock mode, start playback timer automatically
             if selectedSource == .mock {
@@ -307,12 +342,6 @@ public final class MainViewModel: ObservableObject {
         self.lyrics = parsed
         self.errorMessage = nil
         syncEngine.setLyrics(parsed, track: track)
-        
-        if #available(iOS 16.2, *), isLiveActivityEnabled {
-            if let initialState = syncEngine.currentSyncState {
-                liveActivityManager.startActivity(track: track, initialSyncState: initialState)
-            }
-        }
         syncEngine.startMockTimer()
     }
 

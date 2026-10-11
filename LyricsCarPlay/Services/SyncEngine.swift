@@ -16,6 +16,8 @@ public final class SyncEngine: ObservableObject {
     @Published public private(set) var lyrics: [LyricLine] = []
     @Published public private(set) var isPlaying: Bool = false
     @Published public private(set) var currentTime: TimeInterval = 0.0
+    /// Increments only when the full song schedule changes (new song, seek/drift, play/pause, or offset adjustment).
+    @Published public private(set) var timelineRevision: Int = 0
 
     /// Lookahead offset in seconds (positive = lyrics appear earlier to compensate audio/UI lag).
     /// Default is +0.85s which matches human reading anticipation and animation duration.
@@ -23,6 +25,7 @@ public final class SyncEngine: ObservableObject {
         didSet {
             UserDefaults.standard.set(lyricOffset, forKey: "LyricTimeOffset")
             updateSyncState(for: interpolatedCurrentTime(), forceEmit: true)
+            timelineRevision &+= 1
         }
     }
 
@@ -59,15 +62,25 @@ public final class SyncEngine: ObservableObject {
         self.isPlaying = isPlaying
         self.currentSyncState = nil
         updateSyncState(for: initialTime, forceEmit: true)
+        timelineRevision &+= 1
     }
 
     /// Updates current playback position from Apple Music or Spotify.
     public func updatePlaybackTime(_ time: TimeInterval, isPlaying: Bool) {
+        let currentInterpolated = interpolatedCurrentTime()
+        let timeDrift = abs(time - currentInterpolated)
+        let playStateChanged = (self.isPlaying != isPlaying)
+
         self.anchorPlaybackTime = time
         self.anchorWallTime = Date()
         self.currentTime = time
         self.isPlaying = isPlaying
         updateSyncState(for: time)
+
+        // Only reschedule the WidgetKit timeline if user paused/resumed or scrubbed/drifted > 0.75s
+        if playStateChanged || timeDrift > 0.75 {
+            timelineRevision &+= 1
+        }
     }
 
     /// Calculates the exact current playback time using wall-clock delta since the last poll.
@@ -110,7 +123,7 @@ public final class SyncEngine: ObservableObject {
             }
         }
 
-        let currentText = activeIndex >= 0 ? lyrics[activeIndex].text : "🎵 ..."
+        let currentText = activeIndex >= 0 ? lyrics[activeIndex].text : "..."
         let previousText = activeIndex > 0 ? lyrics[activeIndex - 1].text : ""
         let nextText = (activeIndex >= 0 && activeIndex + 1 < lyrics.count) ? lyrics[activeIndex + 1].text : (lyrics.first?.text ?? "")
 
@@ -133,10 +146,11 @@ public final class SyncEngine: ObservableObject {
 
     /// Starts a local timer for Mock Player testing.
     public func startMockTimer(speedMultiplier: Double = 1.0) {
-        stopMockTimer()
+        stopMockTimer(notifyTimeline: false)
         anchorPlaybackTime = currentTime
         anchorWallTime = Date()
         isPlaying = true
+        timelineRevision &+= 1
 
         timer = Timer.publish(every: 0.25, on: .main, in: .common)
             .autoconnect()
@@ -150,10 +164,14 @@ public final class SyncEngine: ObservableObject {
             }
     }
 
-    public func stopMockTimer() {
+    public func stopMockTimer(notifyTimeline: Bool = true) {
+        let wasPlaying = isPlaying
         isPlaying = false
         anchorPlaybackTime = currentTime
         timer?.cancel()
         timer = nil
+        if notifyTimeline && wasPlaying {
+            timelineRevision &+= 1
+        }
     }
 }

@@ -24,6 +24,12 @@
     <string>Esta aplicación requiere acceso a tu biblioteca de música para detectar la canción en reproducción y mostrar las letras en CarPlay.</string>
     <key>NSSupportsLiveActivities</key>
     <true/>
+    <key>NSSupportsLiveActivitiesFrequentUpdates</key>
+    <true/>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+    </array>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>

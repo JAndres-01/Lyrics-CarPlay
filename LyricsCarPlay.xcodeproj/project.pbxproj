@@ -23,6 +23,7 @@
 		A000000E2C10000000000001 /* LyricsDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000E2C10000000000001 /* LyricsDisplayView.swift */; };
 		A000000F2C10000000000001 /* SpotifyConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000001F2C10000000000001 /* SpotifyConnectView.swift */; };
 		A00000142C10000000000001 /* LocalWidgetServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000142C10000000000001 /* LocalWidgetServer.swift */; };
+		A00000162C10000000000001 /* BackgroundAudioKeepAlive.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000162C10000000000001 /* BackgroundAudioKeepAlive.swift */; };
 
 		A00000102C10000000000001 /* LyricsWidgetExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000102C10000000000001 /* LyricsWidgetExtension.swift */; };
 		A00000112C10000000000001 /* CarPlayLiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00000112C10000000000001 /* CarPlayLiveActivityView.swift */; };
@@ -43,6 +44,7 @@
 		B00000092C10000000000001 /* SpotifyMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/SpotifyMonitor.swift; sourceTree = "<group>"; };
 		B000000A2C10000000000001 /* LiveActivityManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/LiveActivityManager.swift; sourceTree = "<group>"; };
 		B00000142C10000000000001 /* LocalWidgetServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/LocalWidgetServer.swift; sourceTree = "<group>"; };
+		B00000162C10000000000001 /* BackgroundAudioKeepAlive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Services/BackgroundAudioKeepAlive.swift; sourceTree = "<group>"; };
 		B000000B2C10000000000001 /* MainViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewModels/MainViewModel.swift; sourceTree = "<group>"; };
 		B000000C2C10000000000001 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/MainView.swift; sourceTree = "<group>"; };
 		B000000D2C10000000000001 /* MockPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views/MockPlayerView.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				B00000092C10000000000001 /* SpotifyMonitor.swift */,
 				B000000A2C10000000000001 /* LiveActivityManager.swift */,
 				B00000142C10000000000001 /* LocalWidgetServer.swift */,
+				B00000162C10000000000001 /* BackgroundAudioKeepAlive.swift */,
 				B000000B2C10000000000001 /* MainViewModel.swift */,
 				B000000C2C10000000000001 /* MainView.swift */,
 				B000000D2C10000000000001 /* MockPlayerView.swift */,
@@ -233,6 +236,7 @@
 				A00000092C10000000000001 /* SpotifyMonitor.swift in Sources */,
 				A000000A2C10000000000001 /* LiveActivityManager.swift in Sources */,
 				A00000142C10000000000001 /* LocalWidgetServer.swift in Sources */,
+				A00000162C10000000000001 /* BackgroundAudioKeepAlive.swift in Sources */,
 				A000000B2C10000000000001 /* MainViewModel.swift in Sources */,
 				A000000C2C10000000000001 /* MainView.swift in Sources */,
 				A000000D2C10000000000001 /* MockPlayerView.swift in Sources */,
